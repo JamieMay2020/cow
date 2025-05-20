@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image to GIF with Background Gifs</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #fcfbf9;
+      font-family: sans-serif;
+      text-align: center;
+    }
+
+    .top-links {
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      z-index: 20;
+    }
+
+    .top-links a {
+      margin: 0 15px;
+      text-decoration: none;
+      color: #000;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .label {
+      position: absolute;
+      top: 50px;
+      width: 100%;
+      color: #000;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .sub-label {
+      position: absolute;
+      top: 80px;
+      width: 100%;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .main-image {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
+      width: 300px;
+      height: auto;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .text-wrapper {
+      position: absolute;
+      top: calc(50% + 160px);
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: #333;
+      font-size: 18px;
+      font-style: italic;
+    }
+
+    .background-gif {
+      position: absolute;
+      width: 100px;
+      opacity: 0.2;
+      pointer-events: none;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-links">
+  <a href="https://x.com" target="_blank">x.com</a>
+  <a href="https://pump.fun" target="_blank">pump.fun</a>
+</div>
+<div class="label">$mibby</div>
+<div class="sub-label">CA: 0xfarrr1123</div>
+
+<img src="cow.png" id="main" class="main-image" alt="Main">
+
+<div class="text-wrapper">
+  <div>just a spinny frog, nothing else,</div>
+  <div>hang around for a while</div>
+</div>
+
+<audio id="dance-audio" src="audioo.mp3"></audio>
+
+<script>
+  const mainImage = document.getElementById('main');
+  const audio = document.getElementById('dance-audio');
+
+  let activated = false;
+  let backgroundGifs = [];
+  let pressTimer;
+  let longPressTriggered = false;
+
+  // Pre-load audio for immediate playback
+  audio.load();
+  audio.volume = 0.2;
+
+  function toggleGifs() {
+    if (!activated) {
+      activated = true;
+      mainImage.src = 'cow.gif';
+
+      // Start audio at 47s position
+      audio.currentTime =0; //47
+      
+      // Try to play audio immediately
+      const playPromise = audio.play();
+      
+      // Handle potential play() promise rejection (due to autoplay policies)
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.warn('Audio playback prevented:', error);
+          // We'll still show the visual effects even if audio fails
+        });
+      }
+
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const safeRadius = 180;
+
+      for (let i = 0; i < 30; i++) {
+        let x, y, dx, dy;
+        do {
+          x = Math.random() * window.innerWidth;
+          y = Math.random() * window.innerHeight;
+          dx = x - centerX;
+          dy = y - centerY;
+        } while (Math.sqrt(dx * dx + dy * dy) < safeRadius);
+
+        const gif = document.createElement('img');
+        gif.src = 'cow.gif';
+        gif.classList.add('background-gif');
+        gif.style.left = `${x}px`;
+        gif.style.top = `${y}px`;
+        gif.style.transform = `rotate(${Math.random() * 360}deg)`;
+        document.body.appendChild(gif);
+        backgroundGifs.push(gif);
+      }
+    } else {
+      activated = false;
+      mainImage.src = 'cow.png';
+      backgroundGifs.forEach(gif => gif.remove());
+      backgroundGifs = [];
+      audio.pause();
+    }
+  }
+
+  function startPressTimer() {
+    longPressTriggered = false;
+    pressTimer = setTimeout(() => {
+      longPressTriggered = true;
+      toggleGifs();
+    }, 8000);
+  }
+
+  function cancelPressTimer() {
+    clearTimeout(pressTimer);
+  }
+
+  mainImage.addEventListener('mousedown', startPressTimer);
+  mainImage.addEventListener('touchstart', startPressTimer);
+
+  mainImage.addEventListener('mouseup', cancelPressTimer);
+  mainImage.addEventListener('mouseleave', cancelPressTimer);
+  mainImage.addEventListener('touchend', cancelPressTimer);
+  mainImage.addEventListener('touchcancel', cancelPressTimer);
+
+  mainImage.addEventListener('click', () => {
+    if (pressTimer) clearTimeout(pressTimer);
+    if (longPressTriggered) return;
+    toggleGifs();
+  });
+</script>
+
+</body>
+</html>
