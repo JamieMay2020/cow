@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>glitter the otter</title>
+  <title>cow</title>
   <link rel="icon" type="image/x-icon" href="/images/favicon-32x32.png">
   <style>
     body {
@@ -83,7 +83,7 @@
   <a href="https://x.com" target="_blank">x.com</a>
   <a href="https://pump.fun" target="_blank">pump.fun</a>
 </div>
-<div class="label">$otter</div>
+<div class="label">$cow</div>
 <div class="sub-label">CA: coming</div>
 
 <img src="cow.png" id="main" class="main-image" alt="Main">
@@ -111,7 +111,7 @@
   function toggleGifs() {
     if (!activated) {
       activated = true;
-      mainImage.src = 'otter-dancing.gif';
+      mainImage.src = 'cow.gif';
 
       // Start audio at 47s position
       audio.currentTime =0; //47
@@ -141,7 +141,7 @@
         } while (Math.sqrt(dx * dx + dy * dy) < safeRadius);
 
         const gif = document.createElement('img');
-        gif.src = 'otter-dancing.gif';
+        gif.src = 'cow.gif';
         gif.classList.add('background-gif');
         gif.style.left = `${x}px`;
         gif.style.top = `${y}px`;
