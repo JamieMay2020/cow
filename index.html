@@ -111,7 +111,7 @@
   function toggleGifs() {
     if (!activated) {
       activated = true;
-      mainImage.src = 'cow.gif';
+      mainImage.src = 'otter-dancing.gif';
 
       // Start audio at 47s position
       audio.currentTime =0; //47
@@ -141,7 +141,7 @@
         } while (Math.sqrt(dx * dx + dy * dy) < safeRadius);
 
         const gif = document.createElement('img');
-        gif.src = 'cow.gif';
+        gif.src = 'otter-dancing.gif';
         gif.classList.add('background-gif');
         gif.style.left = `${x}px`;
         gif.style.top = `${y}px`;
