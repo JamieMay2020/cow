@@ -8,10 +8,11 @@
     body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
       background-color: #fcfbf9;
       font-family: sans-serif;
       text-align: center;
+      min-height: 200vh; /* Make page scrollable */
+      position: relative;
     }
 
     .top-links {
@@ -46,11 +47,16 @@
       font-size: 14px;
     }
 
+    .main-section {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
     .main-image {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -60%);
       width: 300px;
       height: auto;
       cursor: pointer;
@@ -58,10 +64,7 @@
     }
 
     .text-wrapper {
-      position: absolute;
-      top: calc(50% + 160px);
-      left: 50%;
-      transform: translateX(-50%);
+      margin-top: 30px;
       text-align: center;
       color: #333;
       font-size: 18px;
@@ -69,28 +72,71 @@
     }
 
     .background-gif {
-      position: absolute;
+      position: fixed;
       width: 100px;
       opacity: 0.2;
       pointer-events: none;
       z-index: 1;
     }
+
+    .about-section {
+      padding: 100px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .about-image {
+      width: 200px;
+      height: auto;
+    }
+
+    .about-text {
+      text-align: left;
+      color: #333;
+      font-size: 16px;
+      line-height: 1.8;
+      max-width: 400px;
+    }
+
+    @media (max-width: 768px) {
+      .about-section {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .about-text {
+        text-align: center;
+      }
+    }
   </style>
 </head>
 <body>
 
-<div class="top-links">
-  <a href="https://x.com" target="_blank">x.com</a>
-  <a href="https://pump.fun" target="_blank">pump.fun</a>
+<div class="main-section">
+  <div class="top-links">
+    <a href="https://x.com" target="_blank">x.com</a>
+    <a href="https://pump.fun" target="_blank">pump.fun</a>
+  </div>
+  <div class="label">$DC</div>
+  <div class="sub-label">CA:</div>
+
+  <img src="cow.png" id="main" class="main-image" alt="Main">
+
+  <div class="text-wrapper">
+    <div>born to dance,</div>
+    <div>nothing else other than a humannn.</div>
+  </div>
 </div>
-<div class="label">$DC</div>
-<div class="sub-label">CA:</div>
 
-<img src="cow.png" id="main" class="main-image" alt="Main">
-
-<div class="text-wrapper">
-  <div>born to dance,</div>
-  <div>nothing else other than a humannn.</div>
+<div class="about-section">
+  <img src="cow.png" class="about-image" alt="Dancing Cow">
+  <div class="about-text">
+    this is a cow. not just any cow, but a cow that exists purely to dance. when the music hits, nothing else matters. click and hold for 8 seconds to unlock a secret, or just click to see the magic. some say it's just pixels on a screen, but we know better. this cow has soul. this cow has moves. this cow is freedom.
+  </div>
 </div>
 
 <audio id="dance-audio" src="audioo.mp3"></audio>
@@ -113,8 +159,8 @@
       activated = true;
       mainImage.src = 'cow.gif';
 
-      // Start audio at 47s position
-      audio.currentTime =6.5; //47
+      // Start audio at 6.5s position
+      audio.currentTime = 6.5;
       
       // Try to play audio immediately
       const playPromise = audio.play();
@@ -123,29 +169,26 @@
       if (playPromise !== undefined) {
         playPromise.catch(error => {
           console.warn('Audio playback prevented:', error);
-          // We'll still show the visual effects even if audio fails
         });
       }
 
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      const safeRadius = 180;
+      // Create background gifs distributed across the entire page height
+      const pageHeight = document.body.scrollHeight;
+      const gifsCount = 50; // More gifs to cover scroll area
 
-      for (let i = 0; i < 30; i++) {
-        let x, y, dx, dy;
-        do {
-          x = Math.random() * window.innerWidth;
-          y = Math.random() * window.innerHeight;
-          dx = x - centerX;
-          dy = y - centerY;
-        } while (Math.sqrt(dx * dx + dy * dy) < safeRadius);
-
+      for (let i = 0; i < gifsCount; i++) {
         const gif = document.createElement('img');
         gif.src = 'cow.gif';
         gif.classList.add('background-gif');
+        
+        // Distribute gifs across full page height
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * pageHeight;
+        
         gif.style.left = `${x}px`;
         gif.style.top = `${y}px`;
         gif.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
         document.body.appendChild(gif);
         backgroundGifs.push(gif);
       }
