@@ -345,6 +345,11 @@
   }
 
   function handleVideoClick() {
+    // If we're on the last video, don't allow skipping
+    if (currentVideoIndex === videos.length - 1) {
+      return;
+    }
+    
     // Cycle through videos
     currentVideoIndex = (currentVideoIndex + 1) % videos.length;
     
@@ -371,6 +376,8 @@
     if (currentVideoIndex === videos.length - 1) {
       // Remove loop attribute for the last video
       videoBg.loop = false;
+      // Remove cursor pointer to indicate it's not clickable
+      videoBg.style.cursor = 'default';
       // Start fading out the top text when video starts playing
       videoBg.addEventListener('play', function fadeOutText() {
         document.querySelector('.label').classList.add('fade-out');
