@@ -151,6 +151,16 @@
       from { opacity: 1; }
       to { opacity: 0; }
     }
+
+    /* Loading indicator */
+    .loading-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      color: #666;
+      font-size: 12px;
+      z-index: 100;
+    }
   </style>
 </head>
 <body>
@@ -171,11 +181,17 @@
 <div class="final-text">polish dancing cow</div>
 <div class="final-ca">ca:</div>
 
+<!-- Create multiple video elements for preloading -->
 <video class="video-background" id="video-bg" loop muted autoplay playsinline>
   <source src="" type="video/mp4">
 </video>
 
+<!-- Hidden video elements for preloading -->
+<div id="video-preloader" style="display: none;"></div>
+
 <audio id="dance-audio" src="audioo.mp3"></audio>
+
+<div class="loading-indicator" id="loading-indicator"></div>
 
 <script>
   const mainImage = document.getElementById('main');
@@ -183,10 +199,14 @@
   const textWrapper = document.getElementById('text-wrapper');
   const videoBg = document.getElementById('video-bg');
   const body = document.body;
+  const loadingIndicator = document.getElementById('loading-indicator');
+  const videoPreloader = document.getElementById('video-preloader');
 
   let clickCount = 0;
   let backgroundGifs = [];
   let currentVideoIndex = 0;
+  let videosLoaded = 0;
+  let allVideosReady = false;
   
   // Array of video file names
   const videos = [
@@ -197,9 +217,61 @@
     'dissapear.mp4',
   ];
 
+  // Store preloaded video elements
+  const preloadedVideos = [];
+
   // Pre-load audio for immediate playback
   audio.load();
   audio.volume = 0.2;
+
+  // Preload cow.gif
+  const cowGif = new Image();
+  cowGif.src = 'cow.gif';
+
+  // Function to preload all videos
+  function preloadVideos() {
+    loadingIndicator.textContent = `Loading videos: 0/${videos.length}`;
+    
+    videos.forEach((videoSrc, index) => {
+      const video = document.createElement('video');
+      video.src = videoSrc;
+      video.muted = true;
+      video.playsInline = true;
+      video.autoplay = false;
+      video.loop = (index !== videos.length - 1); // Don't loop the last video
+      video.preload = 'auto';
+      
+      // Load video metadata and content
+      video.load();
+      
+      video.addEventListener('canplaythrough', function() {
+        videosLoaded++;
+        loadingIndicator.textContent = `Loading videos: ${videosLoaded}/${videos.length}`;
+        
+        if (videosLoaded === videos.length) {
+          allVideosReady = true;
+          loadingIndicator.textContent = 'Ready!';
+          setTimeout(() => {
+            loadingIndicator.style.display = 'none';
+          }, 1000);
+        }
+      }, { once: true });
+      
+      video.addEventListener('error', function() {
+        console.error(`Failed to load video: ${videoSrc}`);
+        videosLoaded++;
+        if (videosLoaded === videos.length) {
+          loadingIndicator.textContent = 'Some videos failed to load';
+        }
+      }, { once: true });
+      
+      preloadedVideos.push(video);
+      videoPreloader.appendChild(video);
+    });
+  }
+
+  // Start preloading videos when page loads
+  window.addEventListener('load', preloadVideos);
 
   function handleMainClick() {
     clickCount++;
@@ -253,10 +325,19 @@
       backgroundGifs.forEach(gif => gif.remove());
       backgroundGifs = [];
 
-      // Load first video
-      videoBg.src = videos[currentVideoIndex];
-      videoBg.load();
-      videoBg.play();
+      // Use preloaded video
+      if (allVideosReady && preloadedVideos[currentVideoIndex]) {
+        // Clone the preloaded video's source to the visible video element
+        videoBg.src = preloadedVideos[currentVideoIndex].src;
+        videoBg.loop = preloadedVideos[currentVideoIndex].loop;
+        videoBg.load();
+        videoBg.play();
+      } else {
+        // Fallback to original behavior if videos aren't ready
+        videoBg.src = videos[currentVideoIndex];
+        videoBg.load();
+        videoBg.play();
+      }
 
       // Hide text
       textWrapper.style.display = 'none';
@@ -267,8 +348,24 @@
     // Cycle through videos
     currentVideoIndex = (currentVideoIndex + 1) % videos.length;
     
-    videoBg.src = videos[currentVideoIndex];
-    videoBg.load();
+    // Use preloaded video if available
+    if (allVideosReady && preloadedVideos[currentVideoIndex]) {
+      videoBg.src = preloadedVideos[currentVideoIndex].src;
+      videoBg.loop = preloadedVideos[currentVideoIndex].loop;
+      
+      // Ensure the video is ready before playing
+      if (preloadedVideos[currentVideoIndex].readyState >= 3) {
+        videoBg.play();
+      } else {
+        videoBg.load();
+        videoBg.play();
+      }
+    } else {
+      // Fallback
+      videoBg.src = videos[currentVideoIndex];
+      videoBg.load();
+      videoBg.play();
+    }
     
     // Check if it's the last video (dissapear.mp4)
     if (currentVideoIndex === videos.length - 1) {
@@ -282,12 +379,7 @@
         // Remove this event listener after it fires once
         videoBg.removeEventListener('play', fadeOutText);
       });
-    } else {
-      // Re-enable loop for other videos
-      videoBg.loop = true;
     }
-    
-    videoBg.play();
   }
 
   mainImage.addEventListener('click', handleMainClick);
