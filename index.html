@@ -8,11 +8,10 @@
     body {
       margin: 0;
       padding: 0;
+      overflow: hidden;
       background-color: #fcfbf9;
       font-family: sans-serif;
       text-align: center;
-      min-height: 200vh; /* Make page scrollable */
-      position: relative;
     }
 
     .top-links {
@@ -47,16 +46,11 @@
       font-size: 14px;
     }
 
-    .main-section {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
-
     .main-image {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
       width: 300px;
       height: auto;
       cursor: pointer;
@@ -64,7 +58,10 @@
     }
 
     .text-wrapper {
-      margin-top: 30px;
+      position: absolute;
+      top: calc(50% + 160px);
+      left: 50%;
+      transform: translateX(-50%);
       text-align: center;
       color: #333;
       font-size: 18px;
@@ -72,158 +69,240 @@
     }
 
     .background-gif {
-      position: fixed;
+      position: absolute;
       width: 100px;
       opacity: 0.2;
       pointer-events: none;
       z-index: 1;
     }
 
-    .about-section {
-      padding: 100px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 60px;
-      max-width: 800px;
-      margin: 0 auto;
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      display: none;
+      cursor: pointer;
+      background-color: #000;
     }
 
-    .about-image {
-      width: 200px;
-      height: auto;
+    .video-mode .video-background {
+      display: block;
     }
 
-    .about-text {
-      text-align: left;
-      color: #333;
-      font-size: 16px;
-      line-height: 1.8;
-      max-width: 400px;
+    .video-mode .main-image,
+    .video-mode .background-gif {
+      display: none;
     }
 
-    @media (max-width: 768px) {
-      .about-section {
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .about-text {
-        text-align: center;
-      }
+    .video-mode .top-links,
+    .video-mode .label,
+    .video-mode .sub-label,
+    .video-mode .text-wrapper {
+      z-index: 21;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    }
+
+    .final-text {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-size: 36px;
+      font-weight: bold;
+      display: none;
+      z-index: 22;
+    }
+
+    .final-ca {
+      position: fixed;
+      top: calc(50% + 40px);
+      left: 50%;
+      transform: translateX(-50%);
+      color: #666;
+      font-size: 14px;
+      display: none;
+      z-index: 22;
+    }
+
+    .final-mode {
+      background-color: #000;
+    }
+
+    .final-mode .final-text,
+    .final-mode .final-ca {
+      display: block;
+    }
+
+    .final-mode .video-background {
+      display: none;
+    }
+
+    .fade-out {
+      animation: fadeOut 2s forwards;
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
     }
   </style>
 </head>
 <body>
 
-<div class="main-section">
-  <div class="top-links">
-    <a href="https://x.com" target="_blank">x.com</a>
-  </div>
-  <div class="label">dancing cow</div>
-  <div class="sub-label">ca:</div>
+<div class="top-links">
+  <a href="https://x.com" target="_blank">x.com</a>
+</div>
+<div class="label">dancing cow</div>
+<div class="sub-label">coming</div>
 
-  <img src="cow.png" id="main" class="main-image" alt="Main">
+<img src="cow.png" id="main" class="main-image" alt="Main">
 
-  <div class="text-wrapper">
-    <div>dancing to escape,</div>
-    <div>click him, scroll down</div>
-  </div>
+<div class="text-wrapper" id="text-wrapper">
+  <div>dancing to escape,</div>
+  <div>click him</div>
 </div>
 
-<div class="about-section">
-  <img src="cow.png" class="about-image" alt="Dancing Cow">
-  <div class="about-text">
-    the polish cow daning all over the world. the sea to the moon. he doesnt mind.
-  </div>
-</div>
+<div class="final-text">polish dancing cow</div>
+<div class="final-ca">ca:</div>
+
+<video class="video-background" id="video-bg" loop muted autoplay playsinline>
+  <source src="" type="video/mp4">
+</video>
 
 <audio id="dance-audio" src="audioo.mp3"></audio>
 
 <script>
   const mainImage = document.getElementById('main');
   const audio = document.getElementById('dance-audio');
+  const textWrapper = document.getElementById('text-wrapper');
+  const videoBg = document.getElementById('video-bg');
+  const body = document.body;
 
-  let activated = false;
+  let clickCount = 0;
   let backgroundGifs = [];
-  let pressTimer;
-  let longPressTriggered = false;
+  let currentVideoIndex = 0;
+  
+  // Array of video file names
+  const videos = [
+    'moondone.mp4',
+    'hillsdone.mp4',
+    'minecraft.mp4',
+    'pizzadone.mp4',
+    'dissapear.mp4',
+  ];
 
   // Pre-load audio for immediate playback
   audio.load();
   audio.volume = 0.2;
 
-  function toggleGifs() {
-    if (!activated) {
-      activated = true;
+  function handleMainClick() {
+    clickCount++;
+
+    if (clickCount === 1) {
+      // First click - activate dancing cows
       mainImage.src = 'cow.gif';
 
-      // Start audio at 6.5s position
+      // Start audio
       audio.currentTime = 6.5;
-      
-      // Try to play audio immediately
       const playPromise = audio.play();
       
-      // Handle potential play() promise rejection (due to autoplay policies)
       if (playPromise !== undefined) {
         playPromise.catch(error => {
           console.warn('Audio playback prevented:', error);
         });
       }
 
-      // Create background gifs distributed across the entire page height
-      const pageHeight = document.body.scrollHeight;
-      const gifsCount = 50; // More gifs to cover scroll area
+      // Create background dancing cows
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const safeRadius = 180;
 
-      for (let i = 0; i < gifsCount; i++) {
+      for (let i = 0; i < 30; i++) {
+        let x, y, dx, dy;
+        do {
+          x = Math.random() * window.innerWidth;
+          y = Math.random() * window.innerHeight;
+          dx = x - centerX;
+          dy = y - centerY;
+        } while (Math.sqrt(dx * dx + dy * dy) < safeRadius);
+
         const gif = document.createElement('img');
         gif.src = 'cow.gif';
         gif.classList.add('background-gif');
-        
-        // Distribute gifs across full page height
-        const x = Math.random() * window.innerWidth;
-        const y = Math.random() * pageHeight;
-        
         gif.style.left = `${x}px`;
         gif.style.top = `${y}px`;
         gif.style.transform = `rotate(${Math.random() * 360}deg)`;
-        
         document.body.appendChild(gif);
         backgroundGifs.push(gif);
       }
-    } else {
-      activated = false;
-      mainImage.src = 'cow.png';
+
+      // Change text to "CLICK AGAIN"
+      textWrapper.innerHTML = '<div>CLICK AGAIN</div>';
+
+    } else if (clickCount === 2) {
+      // Second click - switch to video mode
+      body.classList.add('video-mode');
+      
+      // Remove all background gifs
       backgroundGifs.forEach(gif => gif.remove());
       backgroundGifs = [];
-      audio.pause();
+
+      // Load first video
+      videoBg.src = videos[currentVideoIndex];
+      videoBg.load();
+      videoBg.play();
+
+      // Hide text
+      textWrapper.style.display = 'none';
     }
   }
 
-  function startPressTimer() {
-    longPressTriggered = false;
-    pressTimer = setTimeout(() => {
-      longPressTriggered = true;
-      toggleGifs();
-    }, 8000);
+  function handleVideoClick() {
+    // Cycle through videos
+    currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+    
+    videoBg.src = videos[currentVideoIndex];
+    videoBg.load();
+    
+    // Check if it's the last video (dissapear.mp4)
+    if (currentVideoIndex === videos.length - 1) {
+      // Remove loop attribute for the last video
+      videoBg.loop = false;
+      // Start fading out the top text when video starts playing
+      videoBg.addEventListener('play', function fadeOutText() {
+        document.querySelector('.label').classList.add('fade-out');
+        document.querySelector('.sub-label').classList.add('fade-out');
+        document.querySelector('.top-links').classList.add('fade-out');
+        // Remove this event listener after it fires once
+        videoBg.removeEventListener('play', fadeOutText);
+      });
+    } else {
+      // Re-enable loop for other videos
+      videoBg.loop = true;
+    }
+    
+    videoBg.play();
   }
 
-  function cancelPressTimer() {
-    clearTimeout(pressTimer);
-  }
+  mainImage.addEventListener('click', handleMainClick);
+  videoBg.addEventListener('click', handleVideoClick);
 
-  mainImage.addEventListener('mousedown', startPressTimer);
-  mainImage.addEventListener('touchstart', startPressTimer);
-
-  mainImage.addEventListener('mouseup', cancelPressTimer);
-  mainImage.addEventListener('mouseleave', cancelPressTimer);
-  mainImage.addEventListener('touchend', cancelPressTimer);
-  mainImage.addEventListener('touchcancel', cancelPressTimer);
-
-  mainImage.addEventListener('click', () => {
-    if (pressTimer) clearTimeout(pressTimer);
-    if (longPressTriggered) return;
-    toggleGifs();
+  // Ensure video keeps playing or shows final text
+  videoBg.addEventListener('ended', function() {
+    if (currentVideoIndex === videos.length - 1) {
+      // Last video ended - show final text
+      body.classList.add('final-mode');
+    } else {
+      // Other videos - loop
+      this.currentTime = 0;
+      this.play();
+    }
   });
 </script>
 
